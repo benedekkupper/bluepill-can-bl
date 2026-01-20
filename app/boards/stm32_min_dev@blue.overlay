@@ -1,0 +1,12 @@
+/ {
+    chosen {
+        zephyr,canbus = &can1;
+    };
+};
+
+&can1 {
+    status = "okay";
+    bus-speed = <250000>;
+    pinctrl-names = "default";
+    pinctrl-0 = <&can1_remap_pb8_pb9>;
+};

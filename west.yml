@@ -1,0 +1,21 @@
+manifest:
+  self:
+    path: bluepill-can-bl
+
+  projects:
+    - name: zephyr
+      url: https://github.com/zephyrproject-rtos/zephyr.git
+      revision: v4.3.0
+      clone-depth: 1
+      import:
+        name-allowlist:
+          - cmsis_6
+          - hal_stm32
+
+    - name: bitfilled
+      url: https://github.com/IntergatedCircuits/bitfilled.git
+      revision: e108749cfd6d21946c4ff4aa5139229658d7a025
+
+    - name: stm32header
+      url: https://github.com/IntergatedCircuits/stm32header.git
+      revision: 6c3d30b9332bca15a2df4dceff13db626eea6ff3

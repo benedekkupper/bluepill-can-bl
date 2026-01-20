@@ -1,0 +1,6 @@
+name: bluepill-can-bl
+build:
+  cmake: bluepill-can-bl
+  kconfig: zephyr/Kconfig
+  sysbuild-cmake: zephyr/sysbuild
+  sysbuild-kconfig: zephyr/sysbuild/Kconfig

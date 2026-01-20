@@ -1,0 +1,21 @@
+menu "Blue-pill CAN Bootloader Configuration"
+
+config BOOTLOADER_BLUEPILL_CAN
+    bool "Enable Blue-pill CAN Bootloader"
+    depends on SUPPORT_BOOTLOADER
+    help
+        Enable the Blue-pill CAN Bootloader.
+
+config BLUEPILL_CAN_BUS_BITRATE
+    int "CAN bus baud rate"
+    # default $(dt_nodelabel_int_prop,can1,bitrate)
+    help
+        Baud rate for the CAN bus in bits per second.
+
+config BLUEPILL_HSE_CLOCK_HZ
+    int "HSE Clock Frequency"
+    default 8000000
+    help
+        Frequency of the High-Speed External (HSE) clock in Hertz.
+
+endmenu

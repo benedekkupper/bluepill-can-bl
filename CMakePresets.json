@@ -1,0 +1,23 @@
+{
+    "version": 4,
+    "configurePresets": [
+        {
+            "name": "default",
+            "generator": "Ninja",
+            "binaryDir": "${fileDir}/build/${presetName}",
+            "toolchainFile": "${fileDir}/cmake/gcc-arm-none-eabi.cmake",
+            "cacheVariables": {
+                "TARGET_FLAGS": "-mcpu=cortex-m3 ",
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "bluepill",
+            "inherits": "default",
+            "cacheVariables": {
+                "CONFIG_CAN_BITRATE": "250000",
+                "CONFIG_HSE_CLOCK_HZ": "8000000"
+            }
+        }
+    ]
+}

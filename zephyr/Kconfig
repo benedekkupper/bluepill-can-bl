@@ -1,0 +1,19 @@
+config BOOTLOADER_BLUEPILL_CAN
+    bool "Enable Blue-pill CAN Bootloader"
+    depends on SOC_STM32F103X8
+    select USE_DT_CODE_PARTITION
+    select INIT_ARCH_HW_AT_BOOT if ARCH_SUPPORTS_ARCH_HW_INIT
+    imply REBOOT
+    select CPP
+    select REQUIRES_FULL_LIBCPP
+
+    help
+        Enable the Blue-pill CAN Bootloader.
+
+if BOOTLOADER_BLUEPILL_CAN
+
+choice STD_CPP
+	default STD_CPP20
+endchoice
+
+endif
