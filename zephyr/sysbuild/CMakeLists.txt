@@ -4,6 +4,7 @@ function(${SYSBUILD_CURRENT_MODULE_NAME}_pre_cmake)
     if(SB_CONFIG_BOOTLOADER_BLUEPILL_CAN)
         foreach(image ${PRE_CMAKE_IMAGES})
             set_config_bool(${image} CONFIG_BUILD_OUTPUT_BIN y)
+            set_config_bool(${image} CONFIG_BUILD_OUTPUT_HEX y)
             set_config_bool(${image} CONFIG_BOOTLOADER_BLUEPILL_CAN y)
 
             set(image_default_dtc_overlay "${ZEPHYR_BLUEPILL_CAN_BL_MODULE_DIR}/zephyr/bluepill_partitions.overlay")
@@ -14,6 +15,7 @@ function(${SYSBUILD_CURRENT_MODULE_NAME}_pre_cmake)
                     CACHE INTERNAL "Application extra DTC overlay file" FORCE
                 )
             endif()
+
             message(STATUS "Configured Blue-pill CAN Bootloader settings for image: ${image}")
         endforeach()
     endif()
@@ -37,6 +39,7 @@ if(SB_CONFIG_BOOTLOADER_BLUEPILL_CAN)
         INSTALL_COMMAND ""
         BUILD_BYPRODUCTS
             <BINARY_DIR>/bluepill-can-bl.elf
+            <BINARY_DIR>/bluepill-can-bl.hex
             <BINARY_DIR>/bluepill-can-bl.bin
         BUILD_ALWAYS TRUE
     )
