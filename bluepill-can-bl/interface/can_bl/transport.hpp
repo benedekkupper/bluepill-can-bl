@@ -109,8 +109,8 @@ template <std::size_t SIZE, std::size_t ALIGN = 1>
 class payload_assembler
 {
     std::array<std::uint8_t, SIZE> buffer_ alignas(ALIGN);
-    volatile bitfilled::sized_unsigned_t<bitfilled::byte_width(SIZE)> position_{};
-    volatile std::uint8_t counter_{};
+    bitfilled::sized_unsigned_t<bitfilled::byte_width(SIZE)> position_{};
+    std::uint8_t counter_{};
 
   public:
     payload_assembler() = default;
@@ -126,7 +126,7 @@ class payload_assembler
             // too small pdu
             return retval;
         }
-        volatile segmentation_header header{new_part.front()};
+        segmentation_header header{new_part.front()};
         if (header.first)
         {
             position_ = 0;
