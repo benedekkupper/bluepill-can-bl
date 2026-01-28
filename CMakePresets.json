@@ -8,7 +8,8 @@
             "toolchainFile": "${fileDir}/cmake/gcc-arm-none-eabi.cmake",
             "cacheVariables": {
                 "TARGET_FLAGS": "-mcpu=cortex-m3 ",
-                "CMAKE_BUILD_TYPE": "Release"
+                "CMAKE_BUILD_TYPE": "Release",
+                "TOOLCHAIN_PREFIX": "$env{GNUARMEMB_TOOLCHAIN_PATH}arm-none-eabi-"
             }
         },
         {

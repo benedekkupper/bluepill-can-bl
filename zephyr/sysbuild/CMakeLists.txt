@@ -22,6 +22,15 @@ function(${SYSBUILD_CURRENT_MODULE_NAME}_pre_cmake)
 endfunction()
 
 if(SB_CONFIG_BOOTLOADER_BLUEPILL_CAN)
+
+    # use zephyr SDK toolchain when available
+    find_package(Zephyr-sdk)
+    if (Zephyr-sdk_FOUND AND IS_DIRECTORY "${ZEPHYR_SDK_INSTALL_DIR}/arm-zephyr-eabi/bin")
+        set(TOOLCHAIN_SETTINGS "-DTOOLCHAIN_PREFIX=${ZEPHYR_SDK_INSTALL_DIR}/arm-zephyr-eabi/bin/arm-zephyr-eabi-")
+    else()
+        set(TOOLCHAIN_SETTINGS "")
+    endif()
+
     include(ExternalProject)
     ExternalProject_Add(
         bluepill-can-bl
@@ -29,6 +38,7 @@ if(SB_CONFIG_BOOTLOADER_BLUEPILL_CAN)
         BINARY_DIR ${CMAKE_BINARY_DIR}/bootloader
         CONFIGURE_COMMAND ${CMAKE_COMMAND} -S <SOURCE_DIR> -B <BINARY_DIR>
             --preset=default
+            ${TOOLCHAIN_SETTINGS}
             -DCONFIG_CAN_BITRATE=${SB_CONFIG_BLUEPILL_CAN_BUS_BITRATE}
             -DCONFIG_HSE_CLOCK_HZ=${SB_CONFIG_BLUEPILL_HSE_CLOCK_HZ}
             -DZEPHYR_BITFILLED_MODULE_DIR=${ZEPHYR_BITFILLED_MODULE_DIR}
