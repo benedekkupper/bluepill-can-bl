@@ -34,7 +34,7 @@ if(ZEPHYR_BITFILLED_MODULE_DIR)
     )
     FetchContent_MakeAvailable(bitfilled)
 else()
-    CPMAddPackage("gh:IntergatedCircuits/bitfilled#e108749cfd6d21946c4ff4aa5139229658d7a025")
+    CPMAddPackage("gh:IntergatedCircuits/bitfilled#a4aa48e0fa7568880a297825c9ce4bf691f641eb")
 endif()
 
 if(ZEPHYR_STM32HEADER_MODULE_DIR)

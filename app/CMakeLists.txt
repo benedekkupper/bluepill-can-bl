@@ -13,3 +13,4 @@ project(bluepill-app
 )
 
 target_sources(app PRIVATE src/main.cpp)
+target_link_libraries(app PRIVATE can_bl_interface)

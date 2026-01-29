@@ -14,7 +14,7 @@ manifest:
 
     - name: bitfilled
       url: https://github.com/IntergatedCircuits/bitfilled.git
-      revision: e108749cfd6d21946c4ff4aa5139229658d7a025
+      revision: a4aa48e0fa7568880a297825c9ce4bf691f641eb
 
     - name: stm32header
       url: https://github.com/IntergatedCircuits/stm32header.git

@@ -1,8 +1,7 @@
 if(CONFIG_BOOTLOADER_BLUEPILL_CAN)
-    zephyr_library()
+    zephyr_library_named(bluepill-can-bl)
     zephyr_library_sources(boot.cpp)
-    zephyr_include_directories(interface)
-    zephyr_link_libraries(bitfilled)
+    target_link_libraries(bluepill-can-bl PRIVATE bitfilled)
     zephyr_library_compile_definitions(
         BITFILLED_BB_OPS=::bitfilled::bitband<PERIPH_BASE>
     )
