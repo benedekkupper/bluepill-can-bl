@@ -1,0 +1,47 @@
+name: Build bootloader
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Arm GNU Toolchain (arm-none-eabi-gcc)
+        uses: carlosperate/arm-none-eabi-gcc-action@v1
+        with:
+          release: latest
+          path-env-var: GNUARMEMB_TOOLCHAIN_PATH
+
+      - name: Normalize GNUARMEMB_TOOLCHAIN_PATH
+        run: |
+          # Ensure the path ends with a trailing slash so CMake preset prefix works
+          echo "GNUARMEMB_TOOLCHAIN_PATH=${GNUARMEMB_TOOLCHAIN_PATH%/}/" >> $GITHUB_ENV
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build
+
+      - name: Configure
+        run: cmake --preset bluepill
+
+      - name: Build
+        run: cmake --build build/bluepill
+
+      - name: Upload firmware artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware
+          path: |
+            build/bluepill/bluepill-can-bl.elf
+            build/bluepill/bluepill-can-bl.hex

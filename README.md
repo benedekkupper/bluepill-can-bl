@@ -1,13 +1,22 @@
 # Bluepill CAN Bootloader
 
-A minimal CAN bootloader for Blue Pill STM32F103C8T6 boards. It occupies only the first 2 kB of flash, leaving ~62 kB free for the user application. The bootloader speaks a compact CAN protocol with segmentation identical to the Bluetooth ACS scheme and integrates cleanly with Zephyr via sysbuild; the `app/` folder shows a minimal Zephyr client that can request an update.
+> *The cheapest of bootloaders for the cheapest of STM32 boards!*
+
+If you are shopping for the cheapest STM32 that can do CAN, you might just end up with the STM32F103C8T6 chip,
+which is also prominently featured on the famous [*Blue Pill*](https://stm32-base.org/boards/STM32F103C8T6-Blue-Pill.html) boards.
+Once you start developing the firmware, you might quickly find that 64kB of flash code space
+is not that much. Then you realize that you still need a bootloader for firmware update,
+so you search around / try to put something with an LLM, and end up with a quarter of the flash
+reserved for the bootloader.
+
+**How about this instead: a CAN bootloader that only takes up 2kB of flash, and is effortlessly integrating into your zephyr RTOS application?**
 
 ## Highlights
 - 2 kB flash footprint; rest is available for the application.
-- Simple CAN protocol with 1 kB page transfers and ACS-style segmentation.
+- Simple CAN protocol using Bluetooth ACS packet segmentation scheme.
 - Default CAN IDs: prefix `0x7E5` (updater: `prefix+0`, loader: `prefix+1`); standard frames by default (IDE=0).
-- App validity ensured by flashing MSP and reset vector **after** all payload pages are written.
-- Zephyr module with sysbuild application example; shell command `image update` triggers bootloader mode.
+- Application integrity ensured by flashing MSP and reset vector **after** all payload pages are written.
+- Zephyr module with full sysbuild integration, see [app](./app) example (try `image update` shell command).
 
 ## Flash layout
 - Bootloader: 0x0800_0000 – 0x0800_07FF (2 kB)
@@ -52,6 +61,13 @@ Notes:
 - Sysbuild options live in [app/sysbuild.conf](app/sysbuild.conf) (e.g., `SB_CONFIG_BLUEPILL_CAN_BUS_BITRATE`).
 - The sample enables shell and adds `image update` ([app/src/main.cpp](app/src/main.cpp)) which sets the update request flag and reboots.
 - Partitioning comes from [zephyr/bluepill_partitions.overlay](zephyr/bluepill_partitions.overlay).
+
+## Non-zephyr application
+
+When building a non-zephyr application, two things have to be adapted for bootloader support
+(this is true in general):
+1. Modify the linker script to ensure the application's flash area starts where the bootloader's ends.
+2. Write the flash start address to the VTOR register (update vector table address).
 
 ## Update flow
 1. Application sets the update request flag (see `can_bl::set_update_request()` or run `image update` in the sample shell), then resets.
