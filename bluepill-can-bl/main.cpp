@@ -99,7 +99,8 @@ uint32_t write_address(unsigned chunk_index)
 
 int main()
 {
-    if (not pop_update_request() and is_app_present())
+    auto update_req = pop_update_request();
+    if ((update_req == request_source::none) and is_app_present())
     {
         boot_to_app();
     }
@@ -109,8 +110,9 @@ int main()
 
     // receive FW in chunks, erase and write to flash blocks
     uint16_t chunk_index = 0;
-    error_flags current_errors = error_flags::none;
     app_header update_header;
+    error_flags current_errors =
+        (update_req == request_source::loader) ? error_flags::loader_fault : error_flags::none;
 
     while (true)
     {
@@ -207,4 +209,10 @@ int main()
             chunk_index = 0;
         }
     }
+}
+
+extern "C" void HardFault_Handler()
+{
+    set_update_request(request_source::loader);
+    NVIC_SystemReset();
 }

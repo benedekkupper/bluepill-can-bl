@@ -14,6 +14,7 @@ enum error_flags : std::uint8_t
     invalid_update = 1,
     flash_operation = 2,
     rx_timeout = 4,
+    loader_fault = 8,
 
     mask = 0x7F,
     // MSB is reserved:
