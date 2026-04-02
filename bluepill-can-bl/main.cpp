@@ -38,8 +38,7 @@ auto app_flash_start()
 auto app_flash_size()
 {
     extern const uint8_t _bl_flash_start[];
-    return *FLASH_SIZE_REG * 1024 -
-           (app_flash_start() - reinterpret_cast<uint32_t>(_bl_flash_start));
+    return FLASH_SIZE * 1024 - (app_flash_start() - reinterpret_cast<uint32_t>(_bl_flash_start));
 }
 
 struct app_header
@@ -118,7 +117,9 @@ int main()
     {
         CAN.flush_rx();
 
-        CAN.send(info_frame(chunk_index, flash_page_size(), current_errors));
+        const auto fps = flash_page_size();
+        const auto infofr = info_frame(chunk_index, fps, current_errors);
+        CAN.send(infofr);
         current_errors = error_flags::none;
 
         payload_assembler<flash_page_size(), alignof(uint16_t)> rx_assembler;

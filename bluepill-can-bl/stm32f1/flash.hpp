@@ -137,4 +137,4 @@ struct FLASH_t
 #undef FLASH
 inline auto& FLASH = *reinterpret_cast<volatile FLASH_t*>(FLASH_R_BASE);
 
-auto* FLASH_SIZE_REG = reinterpret_cast<const volatile uint16_t*>(0x1FFFF7E0);
+inline const volatile uint16_t& FLASH_SIZE = *reinterpret_cast<const volatile uint16_t*>(0x1FFFF7E0);
