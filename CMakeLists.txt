@@ -13,8 +13,6 @@ project(bluepill-can-bl
 
 add_executable(${PROJECT_NAME})
 
-add_subdirectory(bluepill-can-bl)
-
 target_sources(${PROJECT_NAME} PRIVATE
     bluepill-can-bl/arm/startup_cm3.s
     bluepill-can-bl/boot.cpp
@@ -58,6 +56,8 @@ else()
     target_include_directories(${PROJECT_NAME} PRIVATE ${CPM_PACKAGE_cmsis-device-f1_SOURCE_DIR}/Include)
 endif()
 
+add_subdirectory(bluepill-can-bl)
+
 target_compile_definitions(${PROJECT_NAME} PRIVATE
 	STM32F103xB
     $<$<CONFIG:Debug>:DEBUG>
@@ -85,3 +85,21 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 set_target_properties(${PROJECT_NAME} PROPERTIES
     ADDITIONAL_CLEAN_FILES "${PROJECT_NAME}.map;${PROJECT_NAME}.bin;${PROJECT_NAME}.hex"
 )
+
+option(BLUEPILL_CAN_BL_TESTS "bluepill-can-bl: enable unit testing" OFF)
+if(BLUEPILL_CAN_BL_TESTS)
+    include(ExternalProject)
+    ExternalProject_Add(can_bl_interface_host_tests
+        SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/test"
+        BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/host-tests"
+        CMAKE_ARGS
+            -DBLUEPILL_CAN_BL_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+            -DBITFILLED_SOURCE_DIR=${CPM_PACKAGE_bitfilled_SOURCE_DIR}
+            -DCPM_SOURCE_CACHE=${CPM_SOURCE_CACHE}
+            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        INSTALL_COMMAND ""
+        TEST_COMMAND ""
+        USES_TERMINAL_CONFIGURE TRUE
+        USES_TERMINAL_BUILD TRUE
+    )
+endif()

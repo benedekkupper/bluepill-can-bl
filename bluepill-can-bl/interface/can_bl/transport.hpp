@@ -1,10 +1,11 @@
 #pragma once
 #include <array>
+#include <bit>
 #include <cstdint>
 #include <optional>
 #include <span>
 #include "can/frame.hpp"
-#include <bitfilled.hpp>
+#include <bitfilled/integer.hpp>
 
 namespace can_bl
 {
@@ -67,12 +68,33 @@ struct info_payload
     }
 };
 
-struct segmentation_header : public bitfilled::host_integer<std::uint8_t>
+namespace detail
 {
-    BF_BITS(bool, 0, 0) first;
-    BF_BITS(bool, 1, 1) last;
-    BF_BITS(uint8_t, 2, 7) counter;
+template <std::endian E>
+struct segmentation_header_impl;
+template <>
+struct segmentation_header_impl<std::endian::little>
+{
+    bool first : 1;
+    bool last : 1;
+    std::uint8_t counter : 6;
 };
+template <>
+struct segmentation_header_impl<std::endian::big>
+{
+    std::uint8_t counter : 6;
+    bool last : 1;
+    bool first : 1;
+};
+} // namespace detail
+struct segmentation_header : detail::segmentation_header_impl<std::endian::native>
+{
+    segmentation_header() = default;
+    segmentation_header(std::uint8_t raw) { *this = std::bit_cast<segmentation_header>(raw); }
+
+    operator std::uint8_t() const { return std::bit_cast<std::uint8_t>(*this); }
+};
+static_assert(sizeof(segmentation_header) == 1);
 
 class payload_segmenter
 {
@@ -84,11 +106,11 @@ class payload_segmenter
 
     std::size_t next_segment(std::span<std::uint8_t> dest)
     {
-        std::size_t chunk_space = dest.size() - sizeof(segmentation_header);
         if (dest.size() <= sizeof(segmentation_header) or (position_ > data_.size()))
         {
             return 0;
         }
+        std::size_t chunk_space = dest.size() - sizeof(segmentation_header);
         // set header
         segmentation_header header{};
         header.first = position_ == 0;
@@ -118,8 +140,7 @@ class payload_assembler
 
     void reset() { position_ = 0; }
 
-    std::optional<std::span<const std::uint8_t>>
-    append(const std::span<const std::uint8_t>& new_part)
+    std::optional<std::span<const std::uint8_t>> append(std::span<const std::uint8_t> new_part)
     {
         std::optional<std::span<const std::uint8_t>> retval{};
         if (new_part.size() < sizeof(segmentation_header))
@@ -128,6 +149,7 @@ class payload_assembler
             return retval;
         }
         segmentation_header header{new_part.front()};
+        new_part = new_part.subspan(sizeof(segmentation_header));
         if (header.first)
         {
             position_ = 0;
@@ -137,15 +159,14 @@ class payload_assembler
             // out of order packet or no start of packet
             return retval;
         }
-        if ((position_ + new_part.size() - sizeof(segmentation_header)) > buffer_.size())
+        if ((position_ + new_part.size()) > buffer_.size())
         {
             // overflow
             return retval;
         }
-        counter_ = (header.counter + 1) & header.counter.mask();
-        std::copy(new_part.begin() + sizeof(segmentation_header), new_part.end(),
-                  buffer_.begin() + position_);
-        position_ += new_part.size() - sizeof(segmentation_header);
+        counter_ = (header.counter + 1) & 0x3F;
+        std::copy(new_part.begin(), new_part.end(), buffer_.begin() + position_);
+        position_ += new_part.size();
         if (header.last)
         {
             retval.emplace(buffer_.data(), position_);

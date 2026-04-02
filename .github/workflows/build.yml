@@ -33,10 +33,15 @@ jobs:
           sudo apt-get install -y cmake ninja-build
 
       - name: Configure
-        run: cmake --preset bluepill
+        run: cmake --preset bluepill -DBLUEPILL_CAN_BL_TESTS=ON
 
       - name: Build
         run: cmake --build build/bluepill
+
+      - name: Run host tests
+        run: |
+          cmake --build build/bluepill --target can_bl_interface_host_tests
+          ctest --test-dir build/bluepill/host-tests --output-on-failure
 
       - name: Upload firmware artifacts
         uses: actions/upload-artifact@v4
