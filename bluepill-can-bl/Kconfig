@@ -1,0 +1,17 @@
+menu "Blue-pill CAN Interface Configuration"
+
+config BLUEPILL_CAN_BL_ID_PREFIX
+    hex "CAN ID Prefix"
+    range 0x0 0x1FFFFFFF
+    default 0x7E5
+    help
+        The prefix for CAN IDs used by the bootloader and updater.
+        The bootloader will use this prefix, while the updater will use this prefix + 1.
+
+config BLUEPILL_CAN_BL_IDE
+    bool "Use extended CAN IDs"
+    default n
+    help
+        Whether to use extended CAN IDs (29-bit) or standard CAN IDs (11-bit).
+
+endmenu

@@ -9,7 +9,9 @@
             "cacheVariables": {
                 "TARGET_FLAGS": "-mcpu=cortex-m3 ",
                 "CMAKE_BUILD_TYPE": "Release",
-                "TOOLCHAIN_PREFIX": "$env{GNUARMEMB_TOOLCHAIN_PATH}arm-none-eabi-"
+                "TOOLCHAIN_PREFIX": "$env{GNUARMEMB_TOOLCHAIN_PATH}arm-none-eabi-",
+                "CONFIG_BLUEPILL_CAN_BL_ID_PREFIX": "0x7E5",
+                "CONFIG_BLUEPILL_CAN_BL_IDE": "0"
             }
         },
         {

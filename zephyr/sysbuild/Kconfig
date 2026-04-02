@@ -19,3 +19,5 @@ config BLUEPILL_HSE_CLOCK_HZ
         Frequency of the High-Speed External (HSE) clock in Hertz.
 
 endmenu
+
+rsource "../../bluepill-can-bl/Kconfig"

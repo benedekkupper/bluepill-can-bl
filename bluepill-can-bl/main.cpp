@@ -20,11 +20,13 @@ static void can_init()
 
     static constexpr CAN_t::filter_bank_list_32b_t filter_config = {
         CAN_t::filter_32b_t{.rtr = 0,
-                            .ide = CONFIG_BLUEPILL_CAN_IDE,
-                            .id = can_bl::updater_id << (CONFIG_BLUEPILL_CAN_IDE ? 0 : (29 - 11))},
+                            .ide = CONFIG_BLUEPILL_CAN_BL_IDE,
+                            .id = can_bl::updater_id(CONFIG_BLUEPILL_CAN_BL_ID_PREFIX)
+                                  << (CONFIG_BLUEPILL_CAN_BL_IDE ? 0 : (29 - 11))},
         CAN_t::filter_32b_t{.rtr = 1,
-                            .ide = CONFIG_BLUEPILL_CAN_IDE,
-                            .id = can_bl::loader_id << (CONFIG_BLUEPILL_CAN_IDE ? 0 : (29 - 11))},
+                            .ide = CONFIG_BLUEPILL_CAN_BL_IDE,
+                            .id = can_bl::loader_id(CONFIG_BLUEPILL_CAN_BL_ID_PREFIX)
+                                  << (CONFIG_BLUEPILL_CAN_BL_IDE ? 0 : (29 - 11))},
     };
     CAN.configure_filter_bank(0, filter_config);
 }
@@ -85,10 +87,12 @@ can::frame info_frame(uint16_t current_chunk_index, uint16_t transfer_chunk_size
                       error_flags errors)
 {
     const uint16_t app_size_kB = app_flash_size() / 1024;
-    return can::frame(
-        can::frame_header{.id = loader_id, .ide = CONFIG_BLUEPILL_CAN_IDE, .rtr = false, .dlc = 8},
-        info_payload::to_array(is_app_present(), errors, app_size_kB, transfer_chunk_size,
-                               current_chunk_index));
+    return can::frame(can::frame_header{.id = loader_id(CONFIG_BLUEPILL_CAN_BL_ID_PREFIX),
+                                        .ide = CONFIG_BLUEPILL_CAN_BL_IDE,
+                                        .rtr = false,
+                                        .dlc = 8},
+                      info_payload::to_array(is_app_present(), errors, app_size_kB,
+                                             transfer_chunk_size, current_chunk_index));
 }
 
 uint32_t write_address(unsigned chunk_index)
@@ -124,8 +128,8 @@ int main()
 
         payload_assembler<flash_page_size(), alignof(uint16_t)> rx_assembler;
 
-        auto recv = CAN.receive(timeout(500));
-        for (; recv.has_value(); recv = CAN.receive(timeout(500)))
+        auto recv = CAN.receive(timeout(2000));
+        for (; recv.has_value(); recv = CAN.receive(timeout(2000)))
         {
             if (recv->dlc == 0)
             {

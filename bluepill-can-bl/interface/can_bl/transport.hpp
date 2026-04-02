@@ -23,8 +23,14 @@ enum error_flags : std::uint8_t
 };
 
 // make sure to link to can-bl-interface library in cmake
-inline constexpr uint32_t updater_id = CONFIG_BLUEPILL_CAN_ID_PREFIX + 0;
-inline constexpr uint32_t loader_id = CONFIG_BLUEPILL_CAN_ID_PREFIX + 1;
+constexpr uint32_t updater_id(uint32_t prefix)
+{
+    return prefix + 0;
+}
+constexpr uint32_t loader_id(uint32_t prefix)
+{
+    return prefix + 1;
+}
 
 struct info_payload
 {
