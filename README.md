@@ -12,29 +12,22 @@ reserved for the bootloader.
 **How about this instead: a CAN bootloader that only takes up 2kB of flash, and is effortlessly integrating into your zephyr RTOS application?**
 
 ## Highlights
-- 2 kB flash footprint; rest is available for the application.
-- Simple CAN protocol using Bluetooth ACS packet segmentation scheme.
-- Default CAN IDs: prefix `0x7E5` (updater: `prefix+0`, loader: `prefix+1`); standard frames by default (IDE=0).
-- Application integrity ensured by flashing MSP and reset vector **after** all payload pages are written.
-- Zephyr module with full sysbuild integration, see [app](./app) example (try `image update` shell command).
-
-## Flash layout
-- Bootloader: 0x0800_0000 – 0x0800_07FF (2 kB)
-- Application slot: 0x0800_0800 – 0x0800_FFFF (62 kB)
-
-Defined in [zephyr/bluepill_partitions.overlay](zephyr/bluepill_partitions.overlay).
+- 2 kB flash footprint; the rest is available for the application
+- Simple CAN protocol with only 2 configurable IDs required, segmentation helper library included
+- Application integrity ensured by flashing MSP and reset vector **after** all payload pages are written
+- Zephyr module with full sysbuild integration, see [app](./app) example (try `image update` shell command). Further documentation available in the [presentation](./docs/zephyr-meetup-vienna-2026-06-17.pdf)
 
 ## CAN protocol (loader ↔ updater)
 - IDs: `updater_id = CONFIG_BLUEPILL_CAN_ID_PREFIX + 0`, `loader_id = CONFIG_BLUEPILL_CAN_ID_PREFIX + 1`.
 - Info frame (sent periodically by loader, DLC=8):
-  - Byte0: error and app present flags.
-  - Byte1: reserved.
-  - Bytes2-3: app flash size in kB.
-  - Bytes4-5: transfer chunk size (1 kB default).
-  - Bytes6-7: current chunk index.
-- Payload segmentation (ACS-like): each PDU prepends a 1-byte header: bit0 `first`, bit1 `last`, bits2-7 rolling `counter`. Data follows the header.
+  - Byte 0: error and app present flags
+  - Byte 1: reserved
+  - Bytes 2-3: app flash size in kB
+  - Bytes 4-5: transfer chunk size
+  - Bytes 6-7: current chunk index
+- Payload segmentation (scheme matches Bluetooth ACS): each PDU prepends a 1-byte header: bit0 `first`, bit1 `last`, bits2-7 rolling `counter`. Data follows the header.
 - Transfer rules:
-  - Chunk size equals the flash page (1 kB). Chunk 0 begins with the application header (MSP + reset vector) but those two words are written **last** once all chunks arrive intact.
+  - Chunk size equals the flash page (in this case 1 kB). Chunk 0 begins with the application header (MSP + reset vector) but those two words are written **last** once all chunks arrive intact.
   - A zero-length CAN frame restarts the transfer (chunk index reset to 0).
   - Short final chunk terminates the transfer; the loader then programs the first two words and boots the new image if valid.
 - Error flags: `0x01` invalid update (bad header/overflow), `0x02` flash failure, `0x04` RX timeout.
@@ -59,7 +52,7 @@ west build -b stm32_min_dev@blue --sysbuild -d app/build app
 
 Notes:
 - Sysbuild options live in [app/sysbuild.conf](app/sysbuild.conf) (e.g., `SB_CONFIG_BLUEPILL_CAN_BUS_BITRATE`).
-- The sample enables shell and adds `image update` ([app/src/main.cpp](app/src/main.cpp)) which sets the update request flag and reboots.
+- The application sample enables shell and adds `image update` ([app/src/main.cpp](app/src/main.cpp)) which sets the update request flag and reboots.
 - Partitioning comes from [zephyr/bluepill_partitions.overlay](zephyr/bluepill_partitions.overlay).
 
 ## Non-zephyr application
@@ -72,16 +65,14 @@ When building a non-zephyr application, two things have to be adapted for bootlo
 ## Update flow
 1. Application sets the update request flag (see `can_bl::set_update_request()` or run `image update` in the sample shell), then resets.
 2. Bootloader stays if no valid app or an update was requested; otherwise it jumps to the app.
-3. Loader advertises status via the periodic info frame; updater streams segmented CAN PDUs in 1 kB chunks.
+3. Loader advertises status via the periodic info frame; updater streams segmented CAN PDUs in requested chunk sizes.
 4. Loader erases/writes each flash page; on the last (short) chunk it writes the MSP/reset vector and boots the new image if valid.
 
 ## Configuration knobs
+- `CONFIG_HSE_CLOCK_HZ`: High-speed external clock source frequency in Hz (currently only 8 or 16 MHz are supported).
 - `CONFIG_CAN_BITRATE`: CAN bus bitrate (required when building standalone).
 - `CONFIG_BLUEPILL_CAN_ID_PREFIX`: CAN ID base (default 0x7E5), defined in the interface target.
 - `CONFIG_BLUEPILL_CAN_IDE`: 0 for standard, 1 for extended CAN IDs.
 
 ## Host-side updater
-A host-side CAN sender is not included; any CAN tool that can emit the framed/segmented PDUs will work. Follow the protocol above to push 1 kB pages (chunk 0 starts with the app header, but those first two words are flashed last by the loader).
-
-## How validity is enforced
-The bootloader defers programming the first two words (MSP and reset vector) until **after** all other pages succeed. This prevents the boot vector from pointing to incomplete images.
+A host-side CAN sender is not included, but the `can_bl_interface` interface library provides the necessary utilities to implement the updater.
