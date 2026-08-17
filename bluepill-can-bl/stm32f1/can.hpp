@@ -293,8 +293,12 @@ struct CAN_t
     using filter_bank_list_16b_t = std::array<filter_16b_t, 4>;
 
     template <typename T>
-    void configure_filter_bank(unsigned bank_index, const T& filter_bank, uint8_t fifo = 0) volatile
-    {
+    void configure_filter_bank(
+        unsigned bank_index, const T& filter_bank,
+        uint8_t fifo = 0) volatile requires(std::is_same_v<T, filter_bank_mask_16b_t> or
+                                            std::is_same_v<T, filter_bank_mask_32b_t> or
+                                            std::is_same_v<T, filter_bank_list_16b_t> or
+                                            std::is_same_v<T, filter_bank_list_32b_t>) {
         FMR.FINIT = 1;
         FM1R.FBM[bank_index] =
             std::is_same_v<T, filter_bank_list_32b_t> or std::is_same_v<T, filter_bank_list_16b_t>;
