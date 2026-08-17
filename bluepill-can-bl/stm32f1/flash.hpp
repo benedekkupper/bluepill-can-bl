@@ -69,23 +69,26 @@ struct FLASH_t
         BF_MMREGBITS(uint32_t, r, 0, 31) WRP;
     } WRPR;
 
-    void unlock() volatile
+    // single instance peripheral, optimize code size by using static functions
+    static volatile FLASH_t& self() { return *reinterpret_cast<volatile FLASH_t*>(FLASH_R_BASE); }
+
+    static void unlock()
     {
-        if (CR.LOCK)
+        if (self().CR.LOCK)
         {
-            KEYR.KEY = FLASH_KEY1;
-            KEYR.KEY = FLASH_KEY2;
+            self().KEYR.KEY = FLASH_KEY1;
+            self().KEYR.KEY = FLASH_KEY2;
         }
     }
 
-    void lock() volatile { CR.LOCK = 1; }
+    static void lock() { self().CR.LOCK = 1; }
 
-    uint32_t errors() volatile { return SR & (FLASH_SR_PGERR | FLASH_SR_WRPRTERR); }
-    void clear_errors() volatile { SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPRTERR; }
+    static uint32_t errors() { return self().SR & (FLASH_SR_PGERR | FLASH_SR_WRPRTERR); }
+    static void clear_errors() { self().SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPRTERR; }
 
-    bool wait_for_completion(timeout timeout_ticks = timeout(50000)) volatile
+    static bool wait_for_completion(timeout timeout_ticks = timeout(50000))
     {
-        while (SR.BSY)
+        while (self().SR.BSY)
         {
             if (timeout_ticks)
             {
@@ -95,25 +98,25 @@ struct FLASH_t
         return true;
     }
 
-    bool page_erase(uint32_t page_address, timeout timeout_ticks = timeout(50000)) volatile
+    static bool page_erase(uint32_t page_address, timeout timeout_ticks = timeout(50000))
     {
-        CR.PER = 1;
-        AR.FAR = page_address;
-        CR.STRT = 1;
+        self().CR.PER = 1;
+        self().AR.FAR = page_address;
+        self().CR.STRT = 1;
         bool ok = wait_for_completion(timeout_ticks);
         if (ok)
         {
-            ok = SR.EOP;
+            ok = self().SR.EOP;
             clear_errors();
         }
-        CR.PER = 0;
+        self().CR.PER = 0;
         return ok;
     }
 
-    bool program(uint32_t address, const uint16_t* data, size_t size,
-                 timeout timeout_ticks = timeout(50000)) volatile
+    static bool program(uint32_t address, const uint16_t* data, size_t size,
+                        timeout timeout_ticks = timeout(50000))
     {
-        CR.PG = 1;
+        self().CR.PG = 1;
         bool ok = true;
         for (size_t i = 0; i < (size + 1) / sizeof(uint16_t); ++i)
         {
@@ -121,7 +124,7 @@ struct FLASH_t
             ok = wait_for_completion(timeout_ticks);
             if (ok)
             {
-                ok = SR.EOP;
+                ok = self().SR.EOP;
                 clear_errors();
             }
             if (!ok)
@@ -129,7 +132,7 @@ struct FLASH_t
                 break;
             }
         }
-        CR.PG = 0;
+        self().CR.PG = 0;
         return ok;
     }
 };
@@ -137,4 +140,5 @@ struct FLASH_t
 #undef FLASH
 inline auto& FLASH = *reinterpret_cast<volatile FLASH_t*>(FLASH_R_BASE);
 
-inline const volatile uint16_t& FLASH_SIZE = *reinterpret_cast<const volatile uint16_t*>(0x1FFFF7E0);
+inline const volatile uint16_t& FLASH_SIZE =
+    *reinterpret_cast<const volatile uint16_t*>(0x1FFFF7E0);
