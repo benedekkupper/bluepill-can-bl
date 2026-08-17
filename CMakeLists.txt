@@ -56,6 +56,10 @@ else()
     target_include_directories(${PROJECT_NAME} PRIVATE ${CPM_PACKAGE_cmsis-device-f1_SOURCE_DIR}/Include)
 endif()
 
+# the defaults result in optimal code size
+set(BITFILLED_BB_OPS "::bitfilled::bitband<PERIPH_BASE>" CACHE STRING "Bitfilled bitband operations implementation to use")
+set(BITFILLED_FLASH_BB_OPS "::bitfilled::base" CACHE STRING "Bitfilled bitband operations implementation to use for FLASH registers")
+
 add_subdirectory(bluepill-can-bl)
 
 if(NOT DEFINED CONFIG_BLUEPILL_CAN_BL_IDE OR CONFIG_BLUEPILL_CAN_BL_IDE STREQUAL "")
@@ -64,7 +68,8 @@ endif()
 target_compile_definitions(${PROJECT_NAME} PRIVATE
 	STM32F103xB
     $<$<CONFIG:Debug>:DEBUG>
-    BITFILLED_BB_OPS=::bitfilled::bitband<PERIPH_BASE>
+    BITFILLED_BB_OPS=${BITFILLED_BB_OPS}
+    BITFILLED_FLASH_BB_OPS=${BITFILLED_FLASH_BB_OPS}
     CONFIG_CAN_BITRATE=${CONFIG_CAN_BITRATE}
     CONFIG_HSE_CLOCK_HZ=${CONFIG_HSE_CLOCK_HZ}
     CONFIG_BLUEPILL_CAN_BL_ID_PREFIX=${CONFIG_BLUEPILL_CAN_BL_ID_PREFIX}

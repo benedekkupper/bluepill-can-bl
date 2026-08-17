@@ -5,7 +5,7 @@
 
 struct FLASH_t
 {
-    using mmr_ops = ::bitfilled::base; // BITFILLED_BB_OPS;
+    using mmr_ops = BITFILLED_FLASH_BB_OPS;
     struct ACR_t : BF_MMREG(uint32_t, rw, mmr_ops)
     {
         BF_COPY_SUPERCLASS(ACR_t);

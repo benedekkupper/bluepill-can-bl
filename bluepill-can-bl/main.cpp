@@ -76,6 +76,7 @@ void boot_to_app()
     auto app_entry = reinterpret_cast<void (*)()>(app_header->reset_vector);
     __set_MSP(app_header->msr);
     app_entry();
+    __builtin_unreachable();
 }
 
 inline constexpr uint16_t flash_page_size(uint32_t address = 0)

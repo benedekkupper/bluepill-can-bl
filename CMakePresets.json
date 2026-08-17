@@ -11,7 +11,8 @@
                 "CMAKE_BUILD_TYPE": "Release",
                 "TOOLCHAIN_PREFIX": "$env{GNUARMEMB_TOOLCHAIN_PATH}arm-none-eabi-",
                 "CONFIG_BLUEPILL_CAN_BL_ID_PREFIX": "0x7E5",
-                "CONFIG_BLUEPILL_CAN_BL_IDE": "0"
+                "CONFIG_BLUEPILL_CAN_BL_IDE": "0",
+                "CPM_SOURCE_CACHE": "${fileDir}/.."
             }
         },
         {
@@ -20,6 +21,26 @@
             "cacheVariables": {
                 "CONFIG_CAN_BITRATE": "250000",
                 "CONFIG_HSE_CLOCK_HZ": "8000000"
+            }
+        },
+        {
+            "name": "bluepill-allbitband",
+            "inherits": "default",
+            "cacheVariables": {
+                "CONFIG_CAN_BITRATE": "250000",
+                "CONFIG_HSE_CLOCK_HZ": "8000000",
+                "BITFILLED_BB_OPS": "::bitfilled::bitband<PERIPH_BASE>",
+                "BITFILLED_FLASH_BB_OPS": "::bitfilled::bitband<PERIPH_BASE>"
+            }
+        },
+        {
+            "name": "bluepill-nobitband",
+            "inherits": "default",
+            "cacheVariables": {
+                "CONFIG_CAN_BITRATE": "250000",
+                "CONFIG_HSE_CLOCK_HZ": "8000000",
+                "BITFILLED_BB_OPS": "::bitfilled::base",
+                "BITFILLED_FLASH_BB_OPS": "::bitfilled::base"
             }
         }
     ]
